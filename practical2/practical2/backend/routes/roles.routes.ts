@@ -66,6 +66,27 @@ export default function rolesRoutes(db: DB) {
     return res.status(403).send();
   });
 
+    router.patch(
+        "/manage",
+        authMiddleware,
+        async (req: Request<{}, {}, { user_id: string }>, res) => {
+            // @ts-ignore
+            const user = await getUserById(db, req.body.user_id);
+
+            if (!user) {
+                return res.status(404).json({ error: "User not found." });
+            }
+
+            const result = await approveUser(db, user.user_id);
+
+            if (!result.ok) {
+                return res.status(500).send();
+            }
+
+            return res.status(200).send();
+        },
+    );
+
   router.patch(
     "/approve",
     authMiddleware,

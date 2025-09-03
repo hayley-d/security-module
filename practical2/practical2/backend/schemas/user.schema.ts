@@ -6,7 +6,12 @@ export const CreateUserDTOSchema = z.object({
   email: z
     .string()
     .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one digit")
+      .regex(/[*,$@!%]/, "Password must contain at least one special character (*,$@!%)"),
 });
 
 export const ValidateMfaSchema = z.object({
@@ -17,12 +22,16 @@ export const ValidateMfaSchema = z.object({
 });
 
 export const UserLoginSchema = z.object({
-  user_email: z.string().email({ message: "Invalid email address" }),
+  user_email: z
+      .string()
+      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
   password: z.string().min(4),
 });
 
 export const ValidateOtpSchema = z.object({
-  user_email: z.string().email(),
+  user_email: z
+      .string()
+      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
   current_ip: z.string().nonempty(),
   otp: z.string().nonempty(),
 });

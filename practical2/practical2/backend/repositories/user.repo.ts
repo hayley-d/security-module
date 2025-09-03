@@ -145,9 +145,11 @@ export async function approveUser(
   const role = await getRoleByName(db, "User");
   const user = await getUserById(db, user_id as UUID);
 
+
   if (!role || !role.ok) {
     return { ok: false, error: "Role not found." };
   }
+
   if (!user) {
     return { ok: false, error: "User not found." };
   }
@@ -203,14 +205,19 @@ export async function login(
   dto: UserLoginDto,
 ): Promise<RequestUserOption> {
   const user: User | null = await getUserByEmail(db, dto.user_email as Email);
+
   if (!user) {
-    console.error("[LOGIN]: Failed to find user in db.");
     return { ok: false, error: "Invalid login credentials." };
+  }
+
+  const user_role = await getRoleById(db, user.role_id as UUID);
+
+  if(!user_role || user_role.role_name == "Guest") {
+    return { ok: false, error: "User not approved." };
   }
 
   const isSetup = await isMfaSetup(db, user.user_id as UUID);
   if (!isSetup) {
-    console.error("[LOGIN]: User has not been setup");
     return { ok: false, error: "MFA not setup" };
   }
 
@@ -261,7 +268,6 @@ export async function validateMfa(
 ): Promise<RequestUserOption> {
   const user: User | null = await getUserByEmail(db, dto.user_email as Email);
   if (!user || !user.mfa_totp_secret) {
-    console.error("user not found.");
     return { ok: false, error: "User not found." };
   }
 

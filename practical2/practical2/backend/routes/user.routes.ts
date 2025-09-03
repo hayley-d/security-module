@@ -67,12 +67,14 @@ export default function userRoutes(db: DB) {
       const parsed = CreateUserDTOSchema.safeParse(req.body);
 
       if (!parsed.success) {
-        return res.status(400).json({ error: "Invlid payload" });
+        console.error("Invalid payload")
+        return res.status(400).json({ error: "Invalid payload" });
       }
 
       const result: MfaResponse = await createUser(db, req.body);
 
       if (!result.ok) {
+        console.error("Failed to create user", result.error)
         return res.status(400).json({ error: "Failed to create user" });
       }
 
@@ -80,6 +82,8 @@ export default function userRoutes(db: DB) {
         .status(201)
         .json({ user_email: result.user_email, url: result.url });
     } catch (err) {
+      // @ts-ignore
+      console.error("Internal Server Error", err.message)
       return res
         .status(500)
         .json({ ok: false, error: "Internal server error" });

@@ -5,6 +5,14 @@ class DocumentsController < ApplicationController
 
   def index
     conn = Faraday.new(url: "#{BACKEND_BASE_URL}", ssl: { verify: false })
+    access_res = conn.post("/has_access", { permission: "read_doc" }.to_json,
+                           "Authorization" => "Bearer #{session[:jwt]}",
+                           "Content-Type" => "application/json"
+    )
+    if access_res.status != 200
+      flash[:alert] = "You do not have permission to view documents."
+      redirect_to documents_path and return
+    end
     response = conn.get("/documents/list") do |req|
       req.headers["Authorization"] = "Bearer #{session[:jwt]}"
     end
@@ -142,7 +150,7 @@ class DocumentsController < ApplicationController
 
     if access_res.status != 200
       flash[:alert] = "You do not have permission to delete documents."
-      redirect_to documents_path
+      redirect_to documents_path and return
     end
 
     response = conn.delete("/documents/#{asset_id}") do |req|

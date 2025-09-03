@@ -5,14 +5,21 @@ class SessionsController < ApplicationController
 
 
   def new
-
+    @form = LoginForm.new
   end
 
   def login
+    @form = LoginForm.new(login_params)
+
+    unless @form.valid?
+      flash.now[:alert] = "Please fix the errors below"
+      return render :new_register, status: :unprocessable_entity
+    end
+
     conn = Faraday.new(url: BACKEND_BASE_URL, ssl: { verify: false })
     response = conn.post("#{BACKEND_BASE_URL}/login", {
-      user_email: params[:email],
-      password: params[:password]
+      user_email: login_params[:email],
+      password: login_params[:password]
     })
 
     body = JSON.parse(response.body)
@@ -52,16 +59,23 @@ class SessionsController < ApplicationController
   end
 
   def new_register
-    # render register form
+    @form = RegisterForm.new
   end
 
   def create_register
+    @form = RegisterForm.new(register_params)
+
+    unless @form.valid?
+      flash.now[:alert] = "Please fix the errors below"
+      return render :new_register, status: :unprocessable_entity
+    end
+
     conn = Faraday.new(url: BACKEND_BASE_URL, ssl: { verify: false })
     response = conn.post("#{BACKEND_BASE_URL}/register", {
-      first_name: params[:first_name],
-      last_name: params[:last_name],
-      email: params[:email],
-      password: params[:password]
+      first_name: register_params[:first_name],
+      last_name: register_params[:last_name],
+      email: register_params[:email],
+      password: register_params[:password]
     })
 
     body = JSON.parse(response.body)
@@ -91,7 +105,7 @@ class SessionsController < ApplicationController
       body = JSON.parse(response.body)
       session[:jwt] = body["token"]
       flash[:notice] = "Welcome! Your account is now verified."
-      redirect_to home_path
+      redirect_to login_path
     else
       flash[:alert] = "Invalid OTP"
       redirect_to otp_path
@@ -102,4 +116,14 @@ class SessionsController < ApplicationController
     reset_session
     redirect_to login_path
   end
+
+  private
+    def register_params
+      params.require(:register_form)
+            .permit(:first_name, :last_name, :email, :password)
+    end
+
+    def login_params
+      params.permit(:email, :password)
+    end
 end

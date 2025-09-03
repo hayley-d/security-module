@@ -5,6 +5,16 @@ class ConfidentialController < ApplicationController
   before_action :check_permissions
   def index
     conn = Faraday.new(url: "#{BACKEND_BASE_URL}", ssl: { verify: false })
+    access_res = conn.post("/has_access", { permission: "view_conf" }.to_json,
+                           "Authorization" => "Bearer #{session[:jwt]}",
+                           "Content-Type" => "application/json"
+    )
+
+    if access_res.status != 200
+      flash[:alert] = "You do not have permission to read confidential files."
+      redirect_to confidential_index_path
+    end
+
     response = conn.get("/confidential/list") do |req|
       req.headers["Authorization"] = "Bearer #{session[:jwt]}"
     end
@@ -27,7 +37,7 @@ class ConfidentialController < ApplicationController
     )
 
     if access_res.status != 200
-      flash[:alert] = "You do not have permission to edit this confidential file."
+      flash[:alert] = "You do not have permission to edit confidential files."
       redirect_to confidential_index_path and return
     end
 
@@ -59,10 +69,10 @@ class ConfidentialController < ApplicationController
     }, { "Authorization" => "Bearer #{session[:jwt]}" })
 
     if response.status == 200
-      flash[:notice] = "Confidential document updated"
+      flash[:notice] = "Confidential file updated"
       redirect_to confidential_index_path
     else
-      flash[:alert] = "Failed to update document"
+      flash[:alert] = "Failed to update confidential file."
       redirect_to confidential_index_path
     end
   end
@@ -70,6 +80,16 @@ class ConfidentialController < ApplicationController
   def download
     asset_id = params[:id]
     conn = Faraday.new(url: "#{BACKEND_BASE_URL}", ssl: { verify: false })
+    access_res = conn.post("/has_access", { permission: "view_conf" }.to_json,
+                           "Authorization" => "Bearer #{session[:jwt]}",
+                           "Content-Type" => "application/json"
+    )
+
+    if access_res.status != 200
+      flash[:alert] = "You do not have permission to read confidential files."
+      redirect_to confidential_index_path
+    end
+
     response = conn.get("/confidential/#{asset_id}") do |req|
       req.headers["Authorization"] = "Bearer #{session[:jwt]}"
     end
@@ -100,7 +120,7 @@ class ConfidentialController < ApplicationController
     )
 
     if access_res.status != 200
-      flash[:alert] = "You do not have permission to create documents."
+      flash[:alert] = "You do not have permission to create confidential files."
       redirect_to confidential_index_path
     end
   end
@@ -122,7 +142,7 @@ class ConfidentialController < ApplicationController
     end
 
     if response.status == 201
-      flash[:notice] = "Document created"
+      flash[:notice] = "New confidential file created"
       redirect_to confidential_index_path
     else
       flash[:alert] = "Failed to create document"
@@ -141,7 +161,7 @@ class ConfidentialController < ApplicationController
 
     if access_res.status != 200
       flash[:alert] = "You do not have permission to delete confidential files."
-      redirect_to confidential_index_path
+      redirect_to confidential_index_path and return
     end
 
     response = conn.delete("/confidential/#{asset_id}") do |req|

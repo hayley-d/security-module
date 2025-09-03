@@ -5,11 +5,6 @@ class AnalyticsController < ApplicationController
 
   def index
     conn = Faraday.new(url: "#{BACKEND_BASE_URL}", ssl: { verify: false })
-
-    # @heatmap = fetch_analytics(conn, "/analytics/heatmap")
-    # @unauthorized = fetch_analytics(conn, "/analytics/unauthorized")
-    # @spikes = fetch_analytics(conn, "/analytics/spikes")
-
     @session_hijacking = fetch_analytics(conn, "/analytics/session-hijacking")
     @impossible_travel = Array(fetch_analytics(conn, "/analytics/impossible-travel"))
     Rails.logger.debug "[Analytics] Impossible travel data: #{@impossible_travel.inspect}"

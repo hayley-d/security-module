@@ -105,6 +105,7 @@ export function documentRoutes(db: DB) {
   );
 
   router.delete("/documents/:asset_id", authMiddleware, async (req, res) => {
+      console.log("DELETE DOCUMENT", req.params.asset_id);
     const { asset_id } = req.params;
     // @ts-ignore
     const user_id: string = req.user.user_id;
@@ -115,6 +116,7 @@ export function documentRoutes(db: DB) {
     });
 
     if (!result.ok) {
+        console.error("Error deleting asset", result.error);
       return res.status(404).json("Failed to delete asset");
     }
 
