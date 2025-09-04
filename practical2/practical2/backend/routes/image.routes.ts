@@ -102,6 +102,7 @@ export function imageRoutes(db: DB) {
   );
 
   router.delete("/images/:asset_id", authMiddleware, async (req, res) => {
+    console.log("DELETE IMAGE HIT");
     const { asset_id } = req.params;
     // @ts-ignore
     const user_id: string = req.user.user_id;
@@ -112,9 +113,11 @@ export function imageRoutes(db: DB) {
     });
 
     if (!result.ok) {
+      console.error("ERROR", result.error);
       return res.status(404).json("Failed to delete asset");
     }
 
+    console.error("IMAGE DELETED");
     return res.status(200).send();
   });
 

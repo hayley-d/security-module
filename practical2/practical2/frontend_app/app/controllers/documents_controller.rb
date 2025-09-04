@@ -5,13 +5,13 @@ class DocumentsController < ApplicationController
 
   def index
     conn = Faraday.new(url: "#{BACKEND_BASE_URL}", ssl: { verify: false })
-    access_res = conn.post("/has_access", { permission: "read_doc" }.to_json,
+    access_res = conn.post("/has_access", { permission: "view_doc" }.to_json,
                            "Authorization" => "Bearer #{session[:jwt]}",
                            "Content-Type" => "application/json"
     )
     if access_res.status != 200
       flash[:alert] = "You do not have permission to view documents."
-      redirect_to documents_path and return
+      redirect_to home_path and return
     end
     response = conn.get("/documents/list") do |req|
       req.headers["Authorization"] = "Bearer #{session[:jwt]}"

@@ -20,5 +20,5 @@ docker compose down
 ***Windows***
 ```bash
 docker-compose down
-'''
+```
 

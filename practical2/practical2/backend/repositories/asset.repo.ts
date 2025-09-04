@@ -236,6 +236,7 @@ export async function getAssetBytes(
         bytes: row.content!,
         description: row.description!,
         file_name: row.file_name!,
+        asset_type: row.asset_type!,
       };
     } else {
       return { ok: false, error: "Asset content not found" };

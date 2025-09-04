@@ -144,7 +144,7 @@ export async function createAsset(
 export async function getAsset(
   db: DB,
   assetId: UUID,
-): Promise<RequestAssetOption> {
+): Promise<GetAssetOption | GetConfidentialAssetOption> {
   return getAssetBytes(db, assetId);
 }
 
@@ -217,7 +217,7 @@ export async function deleteAsset(
   const user: User | null = await getUserById(db, props.deleted_by as UUID);
   const asset = await getAsset(db, props.asset_id as UUID);
 
-  if (!asset) {
+  if (!asset || !asset.ok) {
     return { ok: false, error: "Failed to find asset to delete." };
   }
 
@@ -229,9 +229,9 @@ export async function deleteAsset(
   }
 
   let permission = "";
-  if (asset.asset && asset.asset.asset_type == "image") {
+  if (asset && asset.asset_type == "image") {
     permission = "delete_image";
-  } else if (asset.asset && asset.asset.asset_type === "document") {
+  } else if (asset && asset.asset_type === "document") {
     permission = "delete_doc";
   } else {
     permission = "delete_conf";
