@@ -1,0 +1,62 @@
+# Core LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Intermediate build files (from various engines)
+*.nav
+*.snm
+*.vrb
+*.xdv
+*.dvi
+
+# PDFs and generated docs
+*.pdf
+
+# Backup files
+*~
+*.bak
+*.backup
+*.sav
+*.swp
+*.tmp
+
+# Editors
+.vscode/
+.idea/
+*.latexmain
+*.synctex(busy)
+
+# latexmk / arara specific
+latexmkrc
+*.run.xml
+
+# Misc
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.maf
+*.mtc*
+*.slg
+*.slo
+*.sls
+*.syg
+*.syi
+*.tdo
+*.xdy
