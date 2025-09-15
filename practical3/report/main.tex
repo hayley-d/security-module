@@ -35,12 +35,12 @@
 \section{Task 1}
 \subsection{KeyPass}
 \subsubsection{Overview}
-KeyPass is a form of ransomware that surfaced in 2018 and targets Windows systems. It encrypts user files with AES and RSA keys and then demands payment in exchange for the decryption key. The malware spreads through malicious downloads or bundled installers and is known for leaving ransom notes named \texttt{!!!DECRYPTION\_KEYPASS\_INFO!!!.txt}. The strings and imports extracted from the sample clearly identify it as ransomware due to the presence of encryption routines, ransom note content, and Windows API usage typical for file manipulation and persistence \cite{keypass-kaspersky}.
+KeyPass is a ransomware that targets Windows systems. It encrypts user files with AES and RSA keys and then demands payment in exchange for the decryption key. The malware spreads through malicious downloads or bundled installers and is known for leaving ransom notes named \texttt{!!!DECRYPTION\_KEYPASS\_INFO!!!.txt}. \cite{keypass-kaspersky}.
 
 \subsubsection{Process}
 This sample was obtained from theZoo repository \cite{the-zoo} \cite{the-zoo-keypass}. To ensure its integrity, the downloaded file’s MD5 hash was compared against the value provided in the repository, as shown in figure~\ref{fig:keypass-md5-conf}. Once verified, the sample was analyzed using Detect It Easy (DIE) \cite{detect-it-easy} to extract static features such as embedded strings, entropy, compiler information, and other metadata. The discussion below outlines the findings from this analysis.
 
-\subsection{MD5 Hash Confirmation}
+\subsubsection{MD5 Hash Confirmation}
 \begin{figure}[H] 
   \centering
   \includegraphics[width=0.9\textwidth]{keypass/md5-conf.png}
@@ -58,14 +58,27 @@ The binary was compiled for Windows XP using Microsoft Visual Studio 2013 in C/C
   \label{fig:keypass-compiler-info}
 \end{figure}
 
+\subsubsection{Embedded Strings}
+One of the most surprising findings was the presence of the ransom note. Strings such as \texttt{"All your files, documents, photos, databases and other important files are encrypted..."}, \texttt{"Price for decryption \$300"}, and \texttt{"Very big trouble!!!!!!!"} confirm that the malware’s intent is to extort victims after encrypting their data. The reference to the file \texttt{!!!DECRYPTION\_KEYPASS\_INFO!!!.txt} shows that the ransomware creates a persistent ransom note on infected machines. This approach is typical of ransomware, embedding the extortion message directly into the executable to ensure it is always delivered to the victim.
+
+Alongside the ransom text, there are multiple references to cryptographic algorithms such as \texttt{RijndaelManaged}, \texttt{Aes192}, \texttt{Aes256}, \texttt{TripleDes168}, and \texttt{AddExtraDataAES}. These indicate that the ransomware uses strong encryption algorithms, from the .NET cryptography library. The presence of different algorithms suggests that the developers supported multiple modes of encryption, to possibly evade detection or strengthen the file locking process.
+
+The binary also contains strings tied to Windows Activation Context APIs, including \texttt{ActivateActCtx}, \texttt{DeactivateActCtx}, and \texttt{QueryActCtxW}. In malware they can be abused for DLL redirection and to ensure compatibility across different system configurations. Similarly, registry and persistence APIs such as \texttt{RegOpenKeyTransactedW} and \texttt{RegisterApplicationRestart} show that KeyPass interacts directly with the registry and attempts to survive reboots or crashes by registering itself as a restartable application.
+
+\texttt{GetModuleHandleExW} and the format string \texttt{\%s\%s.dll} suggest that the malware dynamically constructs DLL names at runtime, which can be used to confuse static analysis or to load libraries conditionally. The presence of a compilation artifact, \texttt{@f:\dd\vctools\vc7libs\ship\atlmfc\include\afxwin2.inl}, shows that debugging information from Microsoft’s Visual Studio was left inside the binary, which provides clues about how the malware was built.
+
+The string \texttt{MFCShellList} suggests use of MFC (Microsoft Foundation Classes) for shell interaction. The presence of \texttt{Execute} suggests a generic routine for launching commands or processes, which could be used during file encryption. The path-like value \texttt{\%2\textbackslash protocol\textbackslash StdFileEditing\textbackslash server} appears to be a reference to a file editing or protocol handling algorithm. Together these strings show that KeyPass interacts with the Windows shell and process execution environment.
+
+In summary, the embedded strings reveal every stage of KeyPass’s behavior. Encryption through strong cryptographic algorithms, persistence through registry and restart APIs, dynamic library loading, and direct delivery of ransom instructions through embedded text. This combination reveals the binary’s purpose.
+
 \subsection{GravityRAT}
-\subsection{Overview}
+\subsubsection{Overview}
 GravityRAT is a Remote Access Trojan (RAT) that has been used in attacks against government and military organizations. It is capable of data theft, surveillance, and system manipulation. GravityRAT is notable for its use of encryption, persistence, and ability to evade detection \cite{trendmicro-gravityrat}.
 
-\subsection{Porcess}
+\subsubsection{Porcess}
 This sample was obtained from theZoo repository \cite{the-zoo} \cite{the-zoo-rat}. To ensure its integrity, the downloaded file’s MD5 hash was compared against the value provided in the repository, as shown in figure~\ref{fig:rat-md5-conf}. Once verified, the sample was analyzed using Detect It Easy (DIE) \cite{detect-it-easy} to extract static features such as embedded strings, entropy, compiler information, and other metadata. The discussion below outlines the findings from this analysis.
 
-\subsection{MD5 Hash Confirmation}
+\subsubsection{MD5 Hash Confirmation}
 \begin{figure}[H] 
   \centering
   \includegraphics[width=0.9\textwidth]{gravityrat/md5-conf.png}
@@ -461,13 +474,48 @@ are common in Windows executables, the specific functions used (such as \texttt{
   \label{fig:zeroaccess-imports}
 \end{figure}
 
+\subsection{gVim}
+\subsubsection{Overview}
+\subsubsection{Compiler Information}
+\subsubsection{Entropy}
+\subsubsection{Imports and Sections}
+\subsubsection{Embedded Strings}
+
+\subsection{Cppcheck}
+\subsubsection{Overview}
+\subsubsection{Compiler Information}
+\subsubsection{Entropy}
+\subsubsection{Imports and Sections}
+\subsubsection{Embedded Strings}
+
+\subsection{GIMP}
+\subsubsection{Overview}
+\subsubsection{Compiler Information}
+\subsubsection{Entropy}
+\subsubsection{Imports and Sections}
+\subsubsection{Embedded Strings}
+
+\subsection{SWI Prolog}
+\subsubsection{Overview}
+\subsubsection{Compiler Information}
+\subsubsection{Entropy}
+\subsubsection{Imports and Sections}
+\subsubsection{Embedded Strings}
+
+\subsection{balenaEtcher}
+\subsubsection{Overview}
+\subsubsection{Compiler Information}
+\subsubsection{Entropy}
+\subsubsection{Imports and Sections}
+\subsubsection{Embedded Strings}
+
 \section{Task 2}
 \subsection{KeyPass}
 
 \subsubsection{Summary of Embedded Strings}
 \begin{table}[H]
   \centering
-  \begin{tabular}{|p{5cm}|p{2cm}|p{6cm}|}
+  \begin{tabular}{|p{6cm}|p{2cm}|p{5cm}|}
     \hline
     \textbf{String / Artifact} & \textbf{What it Represents} & \textbf{Interpretation for KeyPass} \\
     \hline
@@ -503,7 +551,8 @@ are common in Windows executables, the specific functions used (such as \texttt{
     \hline
     Language & C/C++ & Offers access to Windows APIs and crypto libraries. \\
     \hline
-    Average Entropy & 6.59 & Above normal range of uncompressed executables suggesting some sections were packed which is confirmed by the finding that 82\% of the binary is packed.
+    Average Entropy & 6.59 & Above normal range of uncompressed executables suggesting some sections were packed which is confirmed by the finding that 82\% of the binary is packed.\\
+    \hline
   \end{tabular}
   \caption{Compiler information for the KeyPass binary.}
   \label{tab:keypass-compiler}
@@ -586,8 +635,6 @@ are common in Windows executables, the specific functions used (such as \texttt{
 \subsubsection{Summary of Compiler Information}
 \begin{table}[H]
   \centering
-  \caption{Compiler information for the GravityRAT binary.}
-  \label{tab:gravityrat-compiler}
   \begin{tabular}{|p{3cm}|p{3cm}|p{6cm}|}
     \hline
     \textbf{Property} & \textbf{Value} & \textbf{Interpretation} \\
@@ -601,25 +648,28 @@ are common in Windows executables, the specific functions used (such as \texttt{
     Language & C\# & Use of a high-level language. \\
     \hline
     Average Entropy & 6.8 & 85\% of the file reported as packed.\\
+    \hline
   \end{tabular}
+  \caption{Compiler information for the GravityRAT binary.}
+  \label{tab:gravityrat-compiler}
 \end{table}
 
 \subsubsection{Imports and Sections}
 \begin{table}[H]
   \centering
-  \caption{Summary of sections in the GravityRAT binary.}
-  \label{tab:gravityrat-sections}
   \begin{tabular}{|p{2cm}|p{8cm}|}
     \hline
     \textbf{Section} & \textbf{Interpretation} \\
     \hline
     \texttt{.text} & Code section, heavily packed (entropy 8.0). \\
     \hline
-    \texttt{.rsrc} & Resources section, may contain embedded configs or icons. \\
+    \texttt{.rsrc} & Resources section, may contain embedded configs or icons.\\
     \hline
     \texttt{.reloc} & Relocation section, standard in PE files. \\
     \hline
   \end{tabular}
+  \caption{Summary of sections in the GravityRAT binary.}
+  \label{tab:gravityrat-sections}
 \end{table}
 
 \subsection{Mirai}
@@ -764,12 +814,36 @@ are common in Windows executables, the specific functions used (such as \texttt{
   \label{tab:zeroaccess-imports}
 \end{table}
 
+\subsection{gVim}
+\subsubsection{Summry of Compiler Information}
+\subsubsection{Summary of Imports and Sections}
+\subsubsection{Summary of Embedded Strings}
+
+\subsection{Cppcheck}
+\subsubsection{Summry of Compiler Information}
+\subsubsection{Summary of Imports and Sections}
+\subsubsection{Summary of Embedded Strings}
+
+\subsection{GIMP}
+\subsubsection{Summry of Compiler Information}
+\subsubsection{Summary of Imports and Sections}
+\subsubsection{Summary of Embedded Strings}
+
+\subsection{SWI Prolog}
+\subsubsection{Summry of Compiler Information}
+\subsubsection{Summary of Imports and Sections}
+\subsubsection{Summary of Embedded Strings}
+
+\subsection{balenaEtcher}
+\subsubsection{Summry of Compiler Information}
+\subsubsection{Summary of Imports and Sections}
+\subsubsection{Summary of Embedded Strings}
 
 \section{Task 3}
 \subsection{KeyPass Rule}
 
 \begin{lstlisting}[language=]
-rule Ransomware_KeyPass_Detailed
+rule KeyPass_Rule
 {
     meta:
         description = "Detects KeyPass ransomware using ransom text, crypto APIs, and system calls"
@@ -815,9 +889,12 @@ rule Ransomware_KeyPass_Detailed
 }
 \end{lstlisting}
 
-\subsection{Mirai}
+\subsubsection{Rule against benigin applications}
+\subsubsection{Rule against other malware types}
+
+\subsection{Mirai Rule}
 \begin{lstlisting}[language=]
-rule Botnet_Mirai_IoT
+rule Mirai_Rule
 {
     meta:
         description = "Detects Mirai-like IoT botnet binaries with HTTP C2 and embedded configs"
@@ -850,11 +927,12 @@ rule Botnet_Mirai_IoT
 
 \end{lstlisting}
 
-The \texttt{Botnet\_Mirai\_IoT} rule checks for the ELF32 file format, HTTP request strings such as GET, POST, and Cookie, hardcoded IP addresses linked to Mirai’s command-and-control servers, and XML configuration values. By requiring this combination, the rule is tuned to detect Mirai IoT botnet samples while avoiding false positives on ordinary Linux programs that might only contain one or two of these elements.
+\subsubsection{Rule against benigin applications}
+\subsubsection{Rule against other malware types}
 
-\subsubsection{GravityRAT Rule}
+\subsection{GravityRAT Rule}
 \begin{lstlisting}[language=]
-rule RAT_GravityRAT_Detection
+rule GravityRAT_Rule
 {
     meta:
         description = "Detects GravityRAT samples using encryption, exfiltration tags, and RAT behaviors"
@@ -884,7 +962,8 @@ rule RAT_GravityRAT_Detection
 }
 \end{lstlisting}
 
-This rule checks for multiple cryptographic references, exfiltration tags, and host profiling artifacts (Ethernet ID, MAC matching, upload server). By combining encryption and exfiltration behaviors with credential-related strings, the rule specifically identifies GravityRAT samples while reducing false positives on benign .NET programs.  
+\subsubsection{Rule against benigin applications}
+\subsubsection{Rule against other malware types}
 
 \bibliographystyle{plain}        
 \bibliography{bibliography}    
