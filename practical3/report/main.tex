@@ -935,25 +935,29 @@ rule GravityRAT_Rule
         malware_type = "Remote Access Trojan"
 
     strings:
-        $aes1 = "RijndaelManaged"
-        $aes2 = "AES192"
-        $aes3 = "AES256"
-        $aes4 = "TripleDes168"
+        $aes1 = "RijndaelManaged" nocase
+        $aes2 = "AES192" nocase
+        $aes3 = "AES256" nocase
+        $aes4 = "TripleDes168" nocase
 
-        $upload = "DriveUpload"
-        $server = "<UploadServer>"
-        $ether = "<EthernetId>"
-        $mac = "<MatchMacAdd>"
-        $netstat = "netstat -a"
+        $upload = "DriveUpload" nocase
+        $server = "<UploadServer>" nocase
+        $ether = "<EthernetId>" nocase
+        $mac = "<MatchMacAdd>" nocase
+        $netstat = "netstat -a" nocase
 
-        $disk = "Win32_LogicalDisk"
-        $rawpass = "RawPassword"
+        $disk = "Win32_LogicalDisk" nocase
+        $rawpass = "RawPassword" nocase
 
-        $string1 = "DRIVE-SCAN-NOT-COMPLETED-ADD-TASK AGAIN-WHEN-COMPLETED"
-        $string2 = "DONT-RESOLVE_DLL_REFERENCE"
+        $string1 = "DRIVE-SCAN-NOT-COMPLETED-ADD-TASK AGAIN-WHEN-COMPLETED" nocase
+        $string2 = "DONT-RESOLVE_DLL_REFERENCE" nocase
 
     condition:
-       all of them 
+       2 of ($aes*) 
+       and 
+       2 of ($string*)
+       and
+       (any of ($upload) or any of ($server) or any of ($ether) or any of ($mac) or any of ($netstat)) 
 }
 \end{lstlisting}
 
