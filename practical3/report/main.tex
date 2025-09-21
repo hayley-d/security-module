@@ -853,37 +853,27 @@ rule KeyPass_Rule
 
     strings:
         $note_file = "!!!DECRYPTION_KEYPASS_INFO!!!.txt"
-        $ransom_text1 = "All your files, documents, photos, databases"
-        $ransom_text2 = "Price for decryption $300"
-        $ransom_text3 = "Very big trouble!!!!!!!"
-        $contact = "@bitmessage.ch"
-
-        $crypto1 = "RijndaelManaged"
-        $crypto2 = "Aes192"
-        $crypto3 = "Aes256"
-        $crypto4 = "TripleDes168"
-        $crypto5 = "Adler32"
-        $crypto6 = "AddExtraDataAES"
+        $ransom_text1 = "All your files, documents, photos, databases and other important files are encrypted"
+        $ransom_text2 = "Price for decryption $300."
+        $ransom_text4 = "This price avaliable if you contact us first 72 hours."
+        $ransom_text3 = "Very big trouble!!!!!!!!!"
+        ransom_text3 = "keypassdecrypt@india.com"
+        $contact = "BM-2cUMY51WfNRGBjGrWcHzTASeUGX84yX741@bitmessage.ch"
 
         $api1 = "RegOpenKeyTransactedW"
         $api2 = "ActivateActCtx"
         $api3 = "DeactivateActCtx"
         $api4 = "QueryActCtxW"
 
-        $drive1 = "DRIVEUPLOADCOMPLETED"
-        $drive2 = "DRIVE-SCAN-NOT-COMPLETED"
-        $drive3 = "DriveUpload"
+        $drive3 = "SetDefaultDllDirectories"
+        $drive4 = "@f:\dd\vctools\vc7libs\ship\atlmfc\include\afxwin2.inl"
 
-        $dll1 = "Comctl32.dll"
-        $dll2 = "UxTheme.dll"
-        $dll3 = "gdiplus.dll"
+        $dll1 = "Comdlg32.dll"
 
     condition:
         $note_file and any of ($ransom_text*) and $contact
         and
-        2 of ($crypto*)
-        and
-        1 of ($api*)
+        2 of ($api*)
         and
         (any of ($drive*) or any of ($dll*))
 }
