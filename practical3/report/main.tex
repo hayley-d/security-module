@@ -65,7 +65,8 @@ Alongside the ransom text, there are multiple references to cryptographic algori
 
 The binary also contains strings tied to Windows Activation Context APIs, including \texttt{ActivateActCtx}, \texttt{DeactivateActCtx}, and \texttt{QueryActCtxW}. In malware they can be abused for DLL redirection and to ensure compatibility across different system configurations. Similarly, registry and persistence APIs such as \texttt{RegOpenKeyTransactedW} and \texttt{RegisterApplicationRestart} show that KeyPass interacts directly with the registry and attempts to survive reboots or crashes by registering itself as a restartable application.
 
-\texttt{GetModuleHandleExW} and the format string \texttt{\%s\%s.dll} suggest that the malware dynamically constructs DLL names at runtime, which can be used to confuse static analysis or to load libraries conditionally. The presence of a compilation artifact, \texttt{@f:\dd\vctools\vc7libs\ship\atlmfc\include\afxwin2.inl}, shows that debugging information from Microsoft’s Visual Studio was left inside the binary, which provides clues about how the malware was built.
+\texttt{GetModuleHandleExW} and the format string \texttt{\%s\%s.dll} suggest that the malware dynamically constructs DLL names at runtime, which can be used to confuse static analysis or to load libraries conditionally. The presence of a compilation artifact, \verb|@f:\dd\vctools\vc7libs\ship\atlmfc\include\afxwin2.inl|
+, shows that debugging information from Microsoft’s Visual Studio was left inside the binary, which provides clues about how the malware was built.
 
 The string \texttt{MFCShellList} suggests use of MFC (Microsoft Foundation Classes) for shell interaction. The presence of \texttt{Execute} suggests a generic routine for launching commands or processes, which could be used during file encryption. The path-like value \texttt{\%2\textbackslash protocol\textbackslash StdFileEditing\textbackslash server} appears to be a reference to a file editing or protocol handling algorithm. Together these strings show that KeyPass interacts with the Windows shell and process execution environment.
 
@@ -476,38 +477,415 @@ are common in Windows executables, the specific functions used (such as \texttt{
 
 \subsection{gVim}
 \subsubsection{Overview}
+gVim Portable is a benign application that provides a Windows compatible version of the Vim. It was chosen as part of this analysis to compare the static features of legitimate software against known malware samples.
+
+\subsubsection{Process}
+This sample was obtained from the official PortableApps distribution. Detect It Easy (DIE) \cite{detect-it-easy} was used to extract static features such as embedded strings, entropy, compiler information, and imports. The findings are presented below.
+
 \subsubsection{Compiler Information}
+The binary was compiled as a Windows PE executable using Visual C/C++ (version 13.10.4035) with the Microsoft Linker from Visual Studio. This matches the toolchain commonly used for legitimate Windows applications.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{gVim/compiler-info.png}
+  \caption{Compiler information for gVim Portable.}
+  \label{fig:gvim-compiler}
+\end{figure}
+
 \subsubsection{Entropy}
+The entropy analysis showed an average entropy of 7.99, with 99\% of the file packed. This is unusually high for a benign program, but in this case it reflects the use of executable packing in portable applications to reduce file size and simplify distribution. Unlike malware, this packing is not meant to evade detection but rather to make the application more portable.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{gVim/entropy.png}
+  \caption{Entropy graph of the gVim Portable binary.}
+  \label{fig:gvim-entropy}
+\end{figure}
+
 \subsubsection{Imports and Sections}
+The imports used by gVim Portable are Windows libraries that support 
+registry interaction (\texttt{ADVAPI32.dll}), shell operations 
+(\texttt{SHELL32.dll}, \texttt{COMCTL32.dll}), and graphical user interface 
+management (\texttt{USER32.dll}, \texttt{GDI32.dll}). These are expected in a 
+text editor with a GUI. The inclusion of \texttt{KERNEL32.dll} provides access to Windows APIs, while \texttt{ole.dll} allows for OLE (Object Linking and 
+Embedding) support.  
+
+The file sections (\texttt{.text}, \texttt{.data}, \texttt{.rdata}, 
+\texttt{.ndata}, \texttt{.rsrc}, and \texttt{.reloc}) are also common for 
+Windows executables.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{gVim/sections.png}
+  \caption{Sections for the gVim binary}
+  \label{fig:gvim-sections}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{gVim/improt.png}
+  \caption{Imports for the gVim binary}
+  \label{fig:gvim-sections}
+\end{figure}
+
 \subsubsection{Embedded Strings}
+Unlike malware samples, the gVim Portable binary contains mostly benign Windows API calls and configuration related strings. For example, \texttt{Control Panel\textbackslash Desktop\textbackslash ResourceLocale} and registry-related functions such as \texttt{RegSetValueExW} and \texttt{RegCloseKey} are typical of an application that needs to store settings in the Windows registry. 
+
+Other strings, such as \texttt{AdjustTokenPrivileges} and \texttt{LookupPrivilegeValueW}, are related to privilege management APIs. These are legitimate Windows functions often invoked when an application requests access to certain system resources.
+
+Strings like \texttt{SHFileOperationW}, \texttt{IsWindowVisible}, and \texttt{PeekMessageW} are standard GUI and file operation routines that match gVim’s behavior as an interactive text editor. Finally, \texttt{ReadFile} is a Windows API function for file input/output, which is expected in a program designed to open and edit text files.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{gVim/strings_1.png}
+  \caption{Strings for the gVim binary}
+  \label{fig:gvim-strings-3}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{gVim/strings_2.png}
+  \caption{Strings for the gVim binary}
+  \label{fig:gvim-strings-2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{gVim/strings_3.png}
+  \caption{Strings for the gVim binary}
+  \label{fig:gvim-strings-1}
+\end{figure}
 
 \subsection{Cppcheck}
-\subsubsection{Overview}
+
 \subsubsection{Compiler Information}
+The binary was compiled for Windows 95 using Microsoft Visual Studio with 
+the Visual C/C++ toolchain and Microsoft Linker. This is a common setup for 
+Windows applications and indicates a standard, professional 
+development environment. The use of C/C++ suggests performance and system level 
+interaction, which is expected for a static analysis tool like Cppcheck.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{CppCheck/compiler-info.png}
+  \caption{Complier information for CppCheck binary.}
+  \label{fig:cppcheck-comiler}
+\end{figure}
+
 \subsubsection{Entropy}
+The binary showed an average entropy of 7.99, with 99\% of the file reported 
+as packed. While this value is extremely high and would normally raise 
+suspicion in malware analysis, in this context it reflects compiler optimizations 
+or packing for portability. Many legitimate applications use packing to 
+reduce executable size or to simplify distribution as a standalone binary.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{CppCheck/entropy.png}
+  \caption{Entropy graph for CppCheck.}
+  \label{fig:cppcheck-comiler}
+\end{figure}
+
 \subsubsection{Imports and Sections}
+The imports referenced by CppCheck are normal of a benign Windows application. 
+\texttt{ADVAPI32.dll} is used for registry access, which is expected since 
+CppCheck stores configuration settings. \texttt{SHELL32.dll}, 
+\texttt{COMCTL32.dll}, and \texttt{USER32.dll} provide shell integration and GUI 
+controls, while \texttt{GDI32.dll} is used for rendering the graphical 
+interface. The presence of \texttt{KERNEL32.dll} and \texttt{ole32.dll} 
+indicates access to kernel Windows APIs. 
+
+The sections identified in the binary (\texttt{.text}, \texttt{.data}, 
+\texttt{.rdata}, \texttt{.ndata}, and \texttt{.rsrc}) are also common for 
+Windows executables.
 \subsubsection{Embedded Strings}
+The strings extracted from the binary are also common with benign applications. 
+\texttt{RegSetValueExW} and \texttt{RegOpenKeyExW} are Windows API functions 
+for modifying and querying registry keys, which CppCheck likely uses for 
+storing user preferences. \texttt{SHFileOperationW} and \texttt{ShellExecuteExW} 
+are shell functions used for file handling and executing external 
+processes, expected in a tool that analyzes source code files. GUI related 
+functions such as \texttt{DispatchMessageW} are part of the Windows message 
+API that changes the interface, while \texttt{ReadFile} is an API for 
+reading input files. None of these strings indicate malicious intent. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{CppCheck/imports.png}
+  \caption{Imports for CppCheck binary.}
+  \label{fig:cppcheck-imports}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{CppCheck/sections.png}
+  \caption{Sections for CppCheck binary.}
+  \label{fig:cppcheck-sections}
+\end{figure}
 
 \subsection{GIMP}
-\subsubsection{Overview}
+
 \subsubsection{Compiler Information}
+The binary was compiled for Windows 95 using Microsoft Visual Studio with 
+the Visual C/C++ toolchain and Microsoft Linker. This is a common setup for 
+Windows applications and indicates a standard, professional 
+development environment.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{GIMP/compiler-info.png}
+  \caption{Compiler information for CppCheck binary.}
+  \label{fig:gimp-compiler}
+\end{figure}
+
 \subsubsection{Entropy}
+The binary showed an average entropy of 7.99, with 99\% of the file reported 
+as packed. While this value is extremely high and would normally raise 
+suspicion in malware analysis, in this context it reflects compiler optimizations 
+or packing for portability. Many legitimate applications use packing to 
+reduce executable size or to simplify distribution as a standalone binary.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{GIMP/entropy.png}
+  \caption{Entropy graph for GIMP binary.}
+  \label{fig:gimp-entropy}
+\end{figure}
+
 \subsubsection{Imports and Sections}
+The imports referenced by CppCheck are normal of a benign Windows application. 
+\texttt{ADVAPI32.dll} is used for registry access, which is expected since 
+CppCheck stores configuration settings. \texttt{SHELL32.dll}, 
+\texttt{COMCTL32.dll}, and \texttt{USER32.dll} provide shell integration and GUI 
+controls, while \texttt{GDI32.dll} is used for rendering the graphical 
+interface. The presence of \texttt{KERNEL32.dll} and \texttt{ole32.dll} 
+indicates access to kernel Windows APIs. 
+
+The sections identified in the binary (\texttt{.text}, \texttt{.data}, 
+\texttt{.rdata}, \texttt{.ndata}, and \texttt{.rsrc}) are also common for 
+Windows executables.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{GIMP/imports.png}
+  \caption{Imports for GIMP binary.}
+  \label{fig:gimp-imports}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{GIMP/sections.png}
+  \caption{Secitons for GIMP binary.}
+  \label{fig:gimp-sections}
+\end{figure}
+
 \subsubsection{Embedded Strings}
+The strings extracted from the binary are also common with benign applications. 
+\texttt{RegSetValueExW} and \texttt{RegOpenKeyExW} are Windows API functions 
+for modifying and querying registry keys, which CppCheck likely uses for 
+storing user preferences. \texttt{SHFileOperationW} and \texttt{ShellExecuteExW} 
+are shell functions used for file handling and executing external 
+processes, expected in a tool that analyzes source code files. GUI related 
+functions such as \texttt{DispatchMessageW} are part of the Windows message 
+API that changes the interface, while \texttt{ReadFile} is an API for 
+reading input files. None of these strings indicate malicious intent. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{GIMP/strings-3.png}
+  \caption{Strings for GIMP binary.}
+  \label{fig:gimp-strings-3}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{GIMP/strings-2.png}
+  \caption{Strings for GIMP binary.}
+  \label{fig:gimp-strings-2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{GIMP/strings-1.png}
+  \caption{Sting for GIMP binary.}
+  \label{fig:gimp-strings-1}
+\end{figure}
 
 \subsection{SWI Prolog}
-\subsubsection{Overview}
+
 \subsubsection{Compiler Information}
+The binary was compiled for Windows 95 using Microsoft Visual Studio with 
+the Visual C/C++ toolchain and Microsoft Linker. This is a common setup for 
+Windows applications and indicates a standard, professional 
+development environment.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{SWIProlog/compiler-info.png}
+  \caption{Compiler information for the SWI Prolog binary.}
+  \label{fig:swi-compiler}
+\end{figure}
+
 \subsubsection{Entropy}
+The binary showed an average entropy of 7.99, with 99\% of the file reported 
+as packed. While this value is extremely high and would normally raise 
+suspicion in malware analysis, in this context it reflects compiler optimizations 
+or packing for portability. Many legitimate applications use packing to 
+reduce executable size or to simplify distribution as a standalone binary.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{SWIProlog/entropy.png}
+  \caption{Entropy graph for the SWI Prolog binary.}
+  \label{fig:swi-entoropy}
+\end{figure}
+
 \subsubsection{Imports and Sections}
+The imports referenced by CppCheck are normal of a benign Windows application. 
+\texttt{ADVAPI32.dll} is used for registry access, which is expected since 
+CppCheck stores configuration settings. \texttt{SHELL32.dll}, 
+\texttt{COMCTL32.dll}, and \texttt{USER32.dll} provide shell integration and GUI 
+controls, while \texttt{GDI32.dll} is used for rendering the graphical 
+interface. The presence of \texttt{KERNEL32.dll} and \texttt{ole32.dll} 
+indicates access to kernel Windows APIs. 
+
+The sections identified in the binary (\texttt{.text}, \texttt{.data}, 
+\texttt{.rdata}, \texttt{.ndata}, and \texttt{.rsrc}) are also common for 
+Windows executables.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{SWIProlog/imports.png}
+  \caption{Imports for the SWI Prolog binary.}
+  \label{fig:swi-imports}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{SWIProlog/sections.png}
+  \caption{Sections for the SWI Prolog binary.}
+  \label{fig:swi-sections}
+\end{figure}
+
 \subsubsection{Embedded Strings}
+The strings extracted from the binary are also common with benign applications. 
+\texttt{RegSetValueExW} and \texttt{RegOpenKeyExW} are Windows API functions 
+for modifying and querying registry keys, which CppCheck likely uses for 
+storing user preferences. \texttt{SHFileOperationW} and \texttt{ShellExecuteExW} 
+are shell functions used for file handling and executing external 
+processes, expected in a tool that analyzes source code files. GUI related 
+functions such as \texttt{DispatchMessageW} are part of the Windows message 
+API that changes the interface, while \texttt{ReadFile} is an API for 
+reading input files. None of these strings indicate malicious intent. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{SWIProlog/strings-1.png}
+  \caption{Strings for the SWI Prolog binary.}
+  \label{fig:swi-strings-1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{SWIProlog/strings-2.png}
+  \caption{Strings for the SWI Prolog binary.}
+  \label{fig:swi-strings-2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{SWIProlog/strings-3.png}
+  \caption{Strings for the SWI Prolog binary.}
+  \label{fig:swi-strings-3}
+\end{figure}
 
 \subsection{balenaEtcher}
-\subsubsection{Overview}
+
 \subsubsection{Compiler Information}
+The binary was compiled for Windows 95 using Microsoft Visual Studio with 
+the Visual C/C++ toolchain and Microsoft Linker. This is a common setup for 
+Windows applications and indicates a standard, professional 
+development environment.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{balenaEtcher/compiler-info.png}
+  \caption{Compiler information for the balenaEtcher binary.}
+  \label{fig:bal-compiler}
+\end{figure}
+
 \subsubsection{Entropy}
+The binary showed an average entropy of 7.99, with 99\% of the file reported 
+as packed. While this value is extremely high and would normally raise 
+suspicion in malware analysis, in this context it reflects compiler optimizations 
+or packing for portability. Many legitimate applications use packing to 
+reduce executable size or to simplify distribution as a standalone binary.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{balenaEtcher/entropy.png}
+  \caption{Entropy for the balenaEtcher binary.}
+  \label{fig:bal-entropy}
+\end{figure}
+
 \subsubsection{Imports and Sections}
+The imports referenced by CppCheck are normal of a benign Windows application. 
+\texttt{ADVAPI32.dll} is used for registry access, which is expected since 
+CppCheck stores configuration settings. \texttt{SHELL32.dll}, 
+\texttt{COMCTL32.dll}, and \texttt{USER32.dll} provide shell integration and GUI 
+controls, while \texttt{GDI32.dll} is used for rendering the graphical 
+interface. The presence of \texttt{KERNEL32.dll} and \texttt{ole32.dll} 
+indicates access to kernel Windows APIs. 
+
+The sections identified in the binary (\texttt{.text}, \texttt{.data}, 
+\texttt{.rdata}, \texttt{.ndata}, and \texttt{.rsrc}) are also common for 
+Windows executables.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{balenaEtcher/imports.png}
+  \caption{Imports for the balenaEtcher binary.}
+  \label{fig:bal-imports}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{balenaEtcher/sections.png}
+  \caption{Sections for the balenaEtcher binary.}
+  \label{fig:bal-sections}
+\end{figure}
+
 \subsubsection{Embedded Strings}
+The strings extracted from the binary are also common with benign applications. 
+\texttt{RegSetValueExW} and \texttt{RegOpenKeyExW} are Windows API functions 
+for modifying and querying registry keys, which CppCheck likely uses for 
+storing user preferences. \texttt{SHFileOperationW} and \texttt{ShellExecuteExW} 
+are shell functions used for file handling and executing external 
+processes, expected in a tool that analyzes source code files. GUI related 
+functions such as \texttt{DispatchMessageW} are part of the Windows message 
+API that changes the interface, while \texttt{ReadFile} is an API for 
+reading input files. None of these strings indicate malicious intent. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{balenaEtcher/strings-1.png}
+  \caption{Strings for the balenaEtcher binary.}
+  \label{fig:bal-strings-1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{balenaEtcher/strings-2.png}
+  \caption{Strings for the balenaEtcher binary.}
+  \label{fig:bal-strings-2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{balenaEtcher/strings-3.png}
+  \caption{Strings for the balenaEtcher binary.}
+  \label{fig:bal-strings-3}
+\end{figure}
 
 \section{Task 2}
 \subsection{KeyPass}
@@ -816,28 +1194,343 @@ are common in Windows executables, the specific functions used (such as \texttt{
 
 \subsection{gVim}
 \subsubsection{Summry of Compiler Information}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{3cm}|p{3cm}|p{6cm}|}
+    \hline
+    \textbf{Property} & \textbf{Value} & \textbf{Interpretation} \\
+    \hline
+    Operating System & Windows 95 & Legacy Windows environment targeted by the build \\
+    \hline
+    Compiler & Visual C/C++ 13.10.4035 & Compiler for Windows applications \\
+    \hline
+    Linker & Microsoft Linker & Standard linker for Windows executables \\
+    \hline
+    Language & C/C++ & Common for applications like gVim \\
+    \hline
+    Tool & Microsoft Visual Studio & Development environment \\
+    \hline
+  \end{tabular}
+  \caption{Compiler information for the gVim Portable binary.}
+  \label{tab:gvim-compiler}
+\end{table}
+
 \subsubsection{Summary of Imports and Sections}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{4cm}|p{8cm}|}
+    \hline
+    \textbf{File / Section} & \textbf{Interpretation} \\
+    \hline
+    \texttt{ADVAPI32.dll}, \texttt{SHELL32.dll}, \texttt{COMCTL32.dll} & Standard Windows libraries for registry, shell, and GUI operations \\
+    \hline
+    \texttt{USER32.dll}, \texttt{GDI32.dll} & Libraries for Windows GUI rendering and user interaction \\
+    \hline
+    \texttt{KERNEL32.dll}, \texttt{ole.dll} & Windows libraries for process, file, and OLE support \\
+    \hline
+    \texttt{.text}, \texttt{.data}, \texttt{.rdata}, \texttt{.ndata}, \texttt{.rsrc} & Normal sections for executable code, data, resources, and relocation information \\
+    \hline
+  \end{tabular}
+  \caption{Summary of imports and sections in the gVim Portable binary.}
+  \label{tab:gvim-imports}
+\end{table}
+
 \subsubsection{Summary of Embedded Strings}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{5cm}|p{3cm}|p{6cm}|}
+    \hline
+    \textbf{String / Artifact} & \textbf{What it Represents} & \textbf{Interpretation for gVim} \\
+    \hline
+    \texttt{Control Panel\textbackslash Desktop\textbackslash ResourceLocale} & Windows registry path & Used for storing localization and configuration values \\
+    \hline
+    \texttt{RegSetValueExW}, \texttt{RegCloseKey} & Registry manipulation functions & Normal application use of registry keys for settings \\
+    \hline
+    \texttt{AdjustTokenPrivileges}, \texttt{LookupPrivilegeValueW} & Privilege management APIs & Expected in applications that need access to user/system resources \\
+    \hline
+    \texttt{SHFileOperationW} & Windows file operation API & Allows gVim to perform file operations within the GUI \\
+    \hline
+    \texttt{IsWindowVisible}, \texttt{PeekMessageW} & GUI related APIs & Standard interaction with Windows user interface \\
+    \hline
+    \texttt{ReadFile} & Windows file I/O function & Expected for reading files within the editor \\
+    \hline
+  \end{tabular}
+  \caption{Summary of embedded strings in the gVim Portable binary.}
+  \label{tab:gvim-strings}
+\end{table}
 
 \subsection{Cppcheck}
 \subsubsection{Summry of Compiler Information}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{3cm}|p{3cm}|p{6cm}|}
+    \hline
+    \textbf{Property} & \textbf{Value} & \textbf{Interpretation} \\
+    \hline
+    Operating System & Windows 95 & Legacy Windows environment \\
+    \hline
+    Compiler & Microsoft Visual C/C++ & Compiler for Windows applications \\
+    \hline
+    Linker & Microsoft Linker & Standard linker for Windows executables \\
+    \hline
+    Language & C/C++ &  Common for a code analysis tool \\
+    \hline
+    Tool & Microsoft Visual Studio & Development environment \\
+    \hline
+    Average Entropy & 7.99 (99\% packed) & High entropy due to packing, but not suspicious for a portable release \\
+    \hline
+  \end{tabular}
+  \caption{Compiler information for the CppCheck binary.}
+  \label{tab:cppcheck-compiler}
+\end{table}
 \subsubsection{Summary of Imports and Sections}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{4cm}|p{8cm}|}
+    \hline
+    \textbf{File/Section} & \textbf{Interpretation} \\
+    \hline
+    \texttt{ADVAPI32.dll} & Registry and security functions \\
+    \hline
+    \texttt{SHELL32.dll}, \texttt{COMCTL32.dll} & Shell and common control libraries for GUI interaction \\
+    \hline
+    \texttt{USER32.dll}, \texttt{GDI32.dll} & Core Windows GUI and graphics libraries \\
+    \hline
+    \texttt{KERNEL32.dll} & Core system API \\
+    \hline
+    \texttt{ole32.dll} & OLE support \\
+    \hline
+    \texttt{.text}, \texttt{.data}, \texttt{.rdata}, \texttt{.ndata}, \texttt{.rsrc} & Standard sections for code, data, read-only data, additional data, and resources \\
+    \hline
+  \end{tabular}
+  \caption{Imports and sections in the Cppcheck binary.}
+  \label{tab:cppcheck-imports}
+\end{table}
 \subsubsection{Summary of Embedded Strings}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{5cm}|p{3cm}|p{7cm}|}
+    \hline
+    \textbf{String / Artifact} & \textbf{Category} & \textbf{Interpretation for CppCheck} \\
+    \hline
+    \texttt{RegSetValueExW}, \texttt{RegOpenKeyExW} & Registry functions & Used to create or query registry keys for configuration storage \\
+    \hline
+    \texttt{SHFileOperationW}, \texttt{ShellExecuteExW} & Shell operations & Used to copy, delete, or open files, consistent with source file analysis \\
+    \hline
+    \texttt{DispatchMessageW} & GUI API & Part of the Windows event/message loop for interface handling \\
+    \hline
+    \texttt{ReadFile} & File system API & Reads input data from project or configuration files \\
+    \hline
+  \end{tabular}
+  \caption{Summary of embedded strings in the CppCheck binary.}
+  \label{tab:cppcheck-strings}
+\end{table}
 
 \subsection{GIMP}
 \subsubsection{Summry of Compiler Information}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{3cm}|p{3cm}|p{6cm}|}
+    \hline
+    \textbf{Property} & \textbf{Value} & \textbf{Interpretation} \\
+    \hline
+    Operating System & Windows 95 & Legacy Windows environment \\
+    \hline
+    Compiler & Microsoft Visual C/C++ & Standard compiler for Windows applications \\
+    \hline
+    Linker & Microsoft Linker & Used to produce Windows executables \\
+    \hline
+    Language & C/C++ & Efficient for graphics intensive applications \\
+    \hline
+    Tool & Microsoft Visual Studio & Development environment \\
+    \hline
+    Average Entropy & 7.99 (99\% packed) & High entropy due to packing, consistent with portable distribution builds \\
+    \hline
+  \end{tabular}
+  \caption{Compiler information for the GIMP binary.}
+  \label{tab:gimp-compiler}
+\end{table}
+
 \subsubsection{Summary of Imports and Sections}
+\begin{table}[H]
+  \centering
+  \caption{Imports and sections in the GIMP binary.}
+  \label{tab:pro-imports}
+  \begin{tabular}{|p{4cm}|p{8cm}|}
+    \hline
+    \textbf{File/Section} & \textbf{Interpretation} \\
+    \hline
+    \texttt{ADVAPI32.dll} & Registry and security functions \\
+    \hline
+    \texttt{SHELL32.dll}, \texttt{COMCTL32.dll} & Shell and common control libraries for GUI interaction \\
+    \hline
+    \texttt{USER32.dll}, \texttt{GDI32.dll} & Core Windows GUI and graphics libraries \\
+    \hline
+    \texttt{KERNEL32.dll} & Core system API \\
+    \hline
+    \texttt{ole32.dll} & OLE support \\
+    \hline
+    \texttt{.text}, \texttt{.data}, \texttt{.rdata}, \texttt{.ndata}, \texttt{.rsrc} & Standard sections for code, data, read-only data, additional data, and resources \\
+    \hline
+  \end{tabular}
+\end{table}
+
 \subsubsection{Summary of Embedded Strings}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{5cm}|p{3cm}|p{7cm}|}
+    \hline
+    \textbf{String / Artifact} & \textbf{Category} & \textbf{Interpretation for CppCheck} \\
+    \hline
+    \texttt{RegSetValueExW}, \texttt{RegOpenKeyExW} & Registry functions & Used to create or query registry keys for configuration storage \\
+    \hline
+    \texttt{SHFileOperationW}, \texttt{ShellExecuteExW} & Shell operations & Used to copy, delete, or open files, consistent with source file analysis \\
+    \hline
+    \texttt{DispatchMessageW} & GUI API & Part of the Windows event/message loop for interface handling \\
+    \hline
+    \texttt{ReadFile} & File system API & Reads input data from project or configuration files \\
+    \hline
+  \end{tabular}
+  \caption{Summary of embedded strings in the GIMP binary.}
+  \label{tab:gimp-strings}
+\end{table}
 
 \subsection{SWI Prolog}
 \subsubsection{Summry of Compiler Information}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{3cm}|p{3cm}|p{6cm}|}
+    \hline
+    \textbf{Property} & \textbf{Value} & \textbf{Interpretation} \\
+    \hline
+    Operating System & Windows 95 & Legacy Windows environment \\
+    \hline
+    Compiler & Microsoft Visual C/C++ & Standard compiler for Windows applications \\
+    \hline
+    Linker & Microsoft Linker & Used to produce Windows executables \\
+    \hline
+    Language & C/C++ & Common for applications like SWI Prolog \\
+    \hline
+    Tool & Microsoft Visual Studio & Development environment \\
+    \hline
+    Average Entropy & 7.99 (99\% packed) & High entropy due to packing, consistent with portable distribution builds \\
+    \hline
+  \end{tabular}
+  \caption{Compiler information for the SWI Prolog binary.}
+  \label{tab:prolog-compiler}
+\end{table}
+
 \subsubsection{Summary of Imports and Sections}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{4cm}|p{8cm}|}
+    \hline
+    \textbf{File/Section} & \textbf{Interpretation} \\
+    \hline
+    \texttt{ADVAPI32.dll} & Registry and security functions \\
+    \hline
+    \texttt{SHELL32.dll}, \texttt{COMCTL32.dll} & Shell and common control libraries for GUI interaction \\
+    \hline
+    \texttt{USER32.dll}, \texttt{GDI32.dll} & Core Windows GUI and graphics libraries \\
+    \hline
+    \texttt{KERNEL32.dll} & Core system API \\
+    \hline
+    \texttt{ole32.dll} & OLE support \\
+    \hline
+    \texttt{.text}, \texttt{.data}, \texttt{.rdata}, \texttt{.ndata}, \texttt{.rsrc} & Standard sections for code, data, read-only data, additional data, and resources \\
+    \hline
+  \end{tabular}
+  \caption{Imports and sections in the SWI Prolog binary.}
+  \label{tab:gimp-imports}
+\end{table}
+
 \subsubsection{Summary of Embedded Strings}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{5cm}|p{3cm}|p{7cm}|}
+    \hline
+    \textbf{String / Artifact} & \textbf{Category} & \textbf{Interpretation for CppCheck} \\
+    \hline
+    \texttt{RegSetValueExW}, \texttt{RegOpenKeyExW} & Registry functions & Used to create or query registry keys for configuration storage \\
+    \hline
+    \texttt{SHFileOperationW}, \texttt{ShellExecuteExW} & Shell operations & Used to copy, delete, or open files, consistent with source file analysis \\
+    \hline
+    \texttt{DispatchMessageW} & GUI API & Part of the Windows event/message loop for interface handling \\
+    \hline
+    \texttt{ReadFile} & File system API & Reads input data from project or configuration files \\
+    \hline
+  \end{tabular}
+  \caption{Summary of embedded strings in the SWI Prolog binary.}
+  \label{tab:cppcheck-strings}
+\end{table}
 
 \subsection{balenaEtcher}
 \subsubsection{Summry of Compiler Information}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{3cm}|p{3cm}|p{6cm}|}
+    \hline
+    \textbf{Property} & \textbf{Value} & \textbf{Interpretation} \\
+    \hline
+    Operating System & Windows 95 & Legacy Windows environment \\
+    \hline
+    Compiler & Microsoft Visual C/C++ & Standard compiler for Windows applications \\
+    \hline
+    Linker & Microsoft Linker & Used to produce Windows executables \\
+    \hline
+    Language & C/C++ & Common for applications like balenaEtcher \\
+    \hline
+    Tool & Microsoft Visual Studio & Development environment \\
+    \hline
+    Average Entropy & 7.99 (99\% packed) & High entropy due to packing, consistent with portable distribution builds \\
+    \hline
+  \end{tabular}
+  \caption{Compiler information for the SWI Prolog binary.}
+  \label{tab:prolog-compiler}
+\end{table}
 \subsubsection{Summary of Imports and Sections}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{4cm}|p{8cm}|}
+    \hline
+    \textbf{File/Section} & \textbf{Interpretation} \\
+    \hline
+    \texttt{ADVAPI32.dll} & Registry and security functions \\
+    \hline
+    \texttt{SHELL32.dll}, \texttt{COMCTL32.dll} & Shell and common control libraries for GUI interaction \\
+    \hline
+    \texttt{USER32.dll}, \texttt{GDI32.dll} & Core Windows GUI and graphics libraries \\
+    \hline
+    \texttt{KERNEL32.dll} & Core system API \\
+    \hline
+    \texttt{ole32.dll} & OLE support \\
+    \hline
+    \texttt{.text}, \texttt{.data}, \texttt{.rdata}, \texttt{.ndata}, \texttt{.rsrc} & Standard sections for code, data, read-only data, additional data, and resources \\
+    \hline
+  \end{tabular}
+  \caption{Imports and sections in the balenaEtcher binary.}
+  \label{tab:balenaEtcher-imports}
+\end{table}
+
 \subsubsection{Summary of Embedded Strings}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|p{5cm}|p{3cm}|p{7cm}|}
+    \hline
+    \textbf{String / Artifact} & \textbf{Category} & \textbf{Interpretation for CppCheck} \\
+    \hline
+    \texttt{RegSetValueExW}, \texttt{RegOpenKeyExW} & Registry functions & Used to create or query registry keys for configuration storage \\
+    \hline
+    \texttt{SHFileOperationW}, \texttt{ShellExecuteExW} & Shell operations & Used to copy, delete, or open files, consistent with source file analysis \\
+    \hline
+    \texttt{DispatchMessageW} & GUI API & Part of the Windows event/message loop for interface handling \\
+    \hline
+    \texttt{ReadFile} & File system API & Reads input data from project or configuration files \\
+    \hline
+  \end{tabular}
+  \caption{Summary of embedded strings in the balenaEtcher binary.}
+  \label{tab:balenaEtcher-strings}
+\end{table}
 
 \section{Task 3}
 \subsection{KeyPass Rule}
@@ -855,10 +1548,10 @@ rule KeyPass_Rule
         $note_file = "!!!DECRYPTION_KEYPASS_INFO!!!.txt"
         $ransom_text1 = "All your files, documents, photos, databases and other important files are encrypted"
         $ransom_text2 = "Price for decryption $300."
-        $ransom_text4 = "This price avaliable if you contact us first 72 hours."
-        $ransom_text3 = "Very big trouble!!!!!!!!!"
-        ransom_text3 = "keypassdecrypt@india.com"
-        $contact = "BM-2cUMY51WfNRGBjGrWcHzTASeUGX84yX741@bitmessage.ch"
+        $ransom_text3 = "This price avaliable if you contact us first 72 hours."
+        $ransom_text4 = "Very big trouble!!!!!!!!!"
+        $ransom_text5 = "keypassdecrypt@india.com"
+        $ransom_text6 = "BM-2cUMY51WfNRGBjGrWcHzTASeUGX84yX741@bitmessage.ch"
 
         $api1 = "RegOpenKeyTransactedW"
         $api2 = "ActivateActCtx"
@@ -866,12 +1559,11 @@ rule KeyPass_Rule
         $api4 = "QueryActCtxW"
 
         $drive3 = "SetDefaultDllDirectories"
-        $drive4 = "@f:\dd\vctools\vc7libs\ship\atlmfc\include\afxwin2.inl"
 
         $dll1 = "Comdlg32.dll"
 
     condition:
-        $note_file and any of ($ransom_text*) and $contact
+        $note_file and any of ($ransom_text*)
         and
         2 of ($api*)
         and
@@ -879,8 +1571,29 @@ rule KeyPass_Rule
 }
 \end{lstlisting}
 
+\subsubsection{Positive Identification}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/keypass-yara-keypass.png}
+  \caption{Yara rule for KeyPass run agains KeyPass binary.}
+  \label{fig:key-yara-key}
+\end{figure}
+
 \subsubsection{Rule against benigin applications}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/keypass-yara-benign.png}
+  \caption{Yara rule for KeyPass run agains benign binaries.}
+  \label{fig:key-yara-benign}
+\end{figure}
+
 \subsubsection{Rule against other malware types}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/keypass-yara-malware.png}
+  \caption{Yara rule for KeyPass run agains other malware binaries.}
+  \label{fig:key-yara-malware}
+\end{figure}
 
 \subsection{Mirai Rule}
 \begin{lstlisting}[language=]
@@ -915,15 +1628,37 @@ rule Mirai_Rule
        and 
        2 of ($soap*)
        and
-       2 of ($api*)
+       2 of ($ip*)
        and
        (any of ($xml*) or any of ($other*)) 
 }
 
 \end{lstlisting}
 
-\subsubsection{Rule against benigin applications}
+
+\subsubsection{Positive Identification}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/mirai-yara-mirai.png}
+  \caption{Yara rule for KeyPass run agains Mirai binary.}
+  \label{fig:mirai-yara-key}
+\end{figure}
+
+\subsubsection{Rule against benign applications}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/mirai-yara-bengin.png}
+  \caption{Yara rule for Mirai run agains benign binaries.}
+  \label{fig:mirai-yara-benign}
+\end{figure}
+
 \subsubsection{Rule against other malware types}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/mirai-yara-malware.png}
+  \caption{Yara rule for Mirai run agains Malware binaries.}
+  \label{fig:mirai-yara-malware}
+\end{figure}
 
 \subsection{GravityRAT Rule}
 \begin{lstlisting}[language=]
@@ -946,8 +1681,8 @@ rule GravityRAT_Rule
         $mac = "<MatchMacAdd>" nocase
         $netstat = "netstat -a" nocase
 
-        $disk = "Win32_LogicalDisk" nocase
-        $rawpass = "RawPassword" nocase
+        $disk1 = "Win32_LogicalDisk" nocase
+        $disk2 = "RawPassword" nocase
 
         $string1 = "DRIVE-SCAN-NOT-COMPLETED-ADD-TASK AGAIN-WHEN-COMPLETED" nocase
         $string2 = "DONT-RESOLVE_DLL_REFERENCE" nocase
@@ -957,12 +1692,32 @@ rule GravityRAT_Rule
        and 
        2 of ($string*)
        and
-       (any of ($upload) or any of ($server) or any of ($ether) or any of ($mac) or any of ($netstat)) 
+       (any of ($upload) or any of ($server) or any of ($ether) or any of ($mac) or any of ($netstat) or any of ($disk*)) 
 }
 \end{lstlisting}
+\subsubsection{Positive Identification}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/rat-yara-rat.png}
+  \caption{Yara identified GravityRat binary.}
+  \label{fig:yara-rat}
+\end{figure}
 
 \subsubsection{Rule against benigin applications}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/rat-yara-malware.png}
+  \caption{Yara rule for GravityRat run agains other malware binaries.}
+  \label{fig:rat-yara-malware}
+\end{figure}
+
 \subsubsection{Rule against other malware types}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{yara/rat-yara-benign.png}
+  \caption{Yara rule for GravityRat run agains benign binaries.}
+  \label{fig:rat-yara-benign}
+\end{figure}
 
 \bibliographystyle{plain}        
 \bibliography{bibliography}    
